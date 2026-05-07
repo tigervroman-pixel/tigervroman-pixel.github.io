@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tiger Vroman</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #080808;
+      --text: #F0EDE8;
+      --accent: #FF3D00;
+      --muted: #555;
+      --border: #1C1C1C;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+      cursor: none;
+    }
+
+    /* CURSOR */
+    #cursor {
+      position: fixed;
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate(-50%, -50%);
+    }
+    #cursor-ring {
+      position: fixed;
+      width: 36px; height: 36px;
+      border: 1px solid rgba(255,61,0,0.4);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s, border-color 0.3s;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.6rem 3rem;
+    }
+    .nav-logo {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.5rem;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      text-decoration: none;
+      position: relative;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a::after {
+      content: '';
+      position: absolute;
+      bottom: -3px; left: 0;
+      width: 0; height: 1px;
+      background: var(--accent);
+      transition: width 0.3s;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* HERO */
+    #hero {
+      position: relative;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      overflow: hidden;
+    }
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%; height: 100%;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      padding: 0 3rem;
+    }
+    .hero-tag {
+      font-size: 0.68rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.8rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.4s ease forwards;
+    }
+    .hero-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(5.5rem, 15vw, 14rem);
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      margin-bottom: 2.5rem;
+    }
+    .hero-name .line { display: block; overflow: hidden; }
+    .hero-name .line span {
+      display: block;
+      opacity: 0;
+      transform: translateY(110%);
+      animation: slideUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero-name .line:nth-child(1) span { animation-delay: 0.5s; }
+    .hero-name .line:nth-child(2) span { animation-delay: 0.72s; color: var(--accent); }
+    .hero-sub {
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      line-height: 1.85;
+      opacity: 0;
+      animation: fadeUp 0.8s 1.15s ease forwards;
+    }
+    .hero-scroll {
+      position: absolute;
+      bottom: 2.5rem; left: 3rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0;
+      animation: fadeUp 0.8s 1.6s ease forwards;
+    }
+    .scroll-line {
+      width: 40px; height: 1px;
+      background: var(--accent);
+      animation: blink 2s ease infinite;
+    }
+
+    /* MARQUEE */
+    .marquee-wrap {
+      background: var(--accent);
+      padding: 0.85rem 0;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+    .marquee-track {
+      display: inline-flex;
+      animation: marquee 22s linear infinite;
+    }
+    .marquee-word {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1rem;
+      letter-spacing: 0.2em;
+      color: var(--bg);
+      padding: 0 2rem;
+    }
+    .marquee-dot { color: rgba(0,0,0,0.25); }
+
+    /* ABOUT */
+    #about {
+      padding: 9rem 3rem;
+      display: grid;
+      grid-template-columns: 1fr 1.6fr;
+      gap: 7rem;
+      align-items: center;
+      border-top: 1px solid var(--border);
+    }
+    .section-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.28em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .about-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(3.5rem, 6vw, 5.5rem);
+      line-height: 0.95;
+      letter-spacing: 0.02em;
+    }
+    .about-text {
+      font-size: 1rem;
+      color: #888;
+      line-height: 1.95;
+      margin-bottom: 3rem;
+    }
+    .about-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+    .stat {
+      border-left: 2px solid var(--accent);
+      padding-left: 1rem;
+    }
+    .stat-number {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.2rem;
+      line-height: 1;
+    }
+    .stat-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 0.3rem;
+    }
+
+    /* INTERESTS */
+    #interests {
+      padding: 8rem 3rem;
+      border-top: 1px solid var(--border);
+    }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 4rem;
+    }
+    .section-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2.8rem, 5vw, 4.5rem);
+      letter-spacing: 0.02em;
+    }
+    .section-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+    .interest-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .interest-card {
+      background: var(--bg);
+      padding: 2.5rem 2rem 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .interest-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: translateY(101%);
+      transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .interest-card:hover::before { transform: translateY(0); }
+    .i-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      margin-bottom: 2rem;
+      position: relative; z-index: 1;
+      transition: color 0.3s;
+    }
+    .interest-card:hover .i-num { color: rgba(0,0,0,0.35); }
+    .i-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1.2rem;
+      position: relative; z-index: 1;
+      display: block;
+    }
+    .i-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.8rem;
+      letter-spacing: 0.04em;
+      position: relative; z-index: 1;
+      transition: color 0.3s;
+      margin-bottom: 0.6rem;
+    }
+    .interest-card:hover .i-name { color: var(--bg); }
+    .i-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.7;
+      position: relative; z-index: 1;
+      transition: color 0.3s;
+    }
+    .interest-card:hover .i-desc { color: rgba(0,0,0,0.6); }
+
+    /* CONTACT */
+    #contact {
+      padding: 9rem 3rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    .contact-heading {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(4.5rem, 11vw, 10rem);
+      line-height: 0.92;
+      letter-spacing: 0.01em;
+      margin-bottom: 3.5rem;
+    }
+    .contact-btns {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .contact-btn {
+      display: inline-block;
+      padding: 1rem 2.2rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      text-decoration: none;
+      color: var(--text);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .contact-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .contact-btn:hover::before { transform: scaleX(1); }
+    .contact-btn span { position: relative; z-index: 1; }
+
+    /* FOOTER */
+    footer {
+      padding: 1.5rem 3rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    footer p {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    /* KEYFRAMES */
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes marquee {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    /* REVEAL */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: 0.1s; }
+    .d2 { transition-delay: 0.2s; }
+    .d3 { transition-delay: 0.3s; }
+    .d4 { transition-delay: 0.4s; }
+
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      .nav-links { display: none; }
+      .hero-content { padding: 0 1.5rem; }
+      .hero-scroll { left: 1.5rem; }
+      #about { grid-template-columns: 1fr; gap: 3rem; padding: 6rem 1.5rem; }
+      #interests { padding: 6rem 1.5rem; }
+      .interest-grid { grid-template-columns: 1fr 1fr; }
+      #contact { padding: 6rem 1.5rem; }
+      footer { padding: 1.5rem; flex-direction: column; gap: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="cursor"></div>
+  <div id="cursor-ring"></div>
+
+  <nav>
+    <a href="#hero" class="nav-logo">TV</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#interests">Passions</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <canvas id="hero-canvas"></canvas>
+    <div class="hero-content">
+      <p class="hero-tag">Austin, TX &nbsp;·&nbsp; Student &nbsp;·&nbsp; Cutco Sales Rep</p>
+      <h1 class="hero-name">
+        <span class="line"><span>Tiger</span></span>
+        <span class="line"><span>Vroman</span></span>
+      </h1>
+      <p class="hero-sub">Music. Fashion. Business. Gaming.<br>Building something real.</p>
+    </div>
+    <div class="hero-scroll">
+      <div class="scroll-line"></div>
+      Scroll
+    </div>
+  </section>
+
+  <div class="marquee-wrap">
+    <div class="marquee-track">
+      <span class="marquee-word">Music</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Fashion</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Gaming</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Business</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Cutco</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Austin TX</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Streetwear</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Sales</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Music</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Fashion</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Gaming</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Business</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Cutco</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Austin TX</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Streetwear</span><span class="marquee-word marquee-dot">✦</span>
+      <span class="marquee-word">Sales</span><span class="marquee-word marquee-dot">✦</span>
+    </div>
+  </div>
+
+  <section id="about">
+    <div class="reveal">
+      <p class="section-label">About Me</p>
+      <h2 class="about-heading">Who's<br/>Tiger?</h2>
+    </div>
+    <div class="reveal d2">
+      <p class="about-text">
+        Tiger Vroman is a student at Austin Waldorf School and a sales rep for Cutco, based in Austin, TX. He moves through life with a genuine passion for music, fashion, and the art of building real connections. Whether he's finding a new artist, putting together a fit, or sitting across from a client — he brings the same energy: intentional, driven, and always authentic.
+      </p>
+      <div class="about-stats">
+        <div class="stat"><div class="stat-number">Cutco</div><div class="stat-label">Sales Rep</div></div>
+        <div class="stat"><div class="stat-number">ATX</div><div class="stat-label">Based In</div></div>
+        <div class="stat"><div class="stat-number">4</div><div class="stat-label">Core Passions</div></div>
+        <div class="stat"><div class="stat-number">∞</div><div class="stat-label">Ambition</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="interests">
+    <div class="section-header reveal">
+      <h2 class="section-title">What I'm Into</h2>
+      <span class="section-num">04 Passions</span>
+    </div>
+    <div class="interest-grid">
+      <div class="interest-card reveal d1">
+        <div class="i-num">01</div>
+        <span class="i-icon">🎵</span>
+        <div class="i-name">Music</div>
+        <p class="i-desc">Always locked in to something new. Music sets the tone for everything.</p>
+      </div>
+      <div class="interest-card reveal d2">
+        <div class="i-num">02</div>
+        <span class="i-icon">👕</span>
+        <div class="i-name">Fashion</div>
+        <p class="i-desc">Style is how you show up before you say a word. Always putting thought into the look.</p>
+      </div>
+      <div class="interest-card reveal d3">
+        <div class="i-num">03</div>
+        <span class="i-icon">📈</span>
+        <div class="i-name">Business</div>
+        <p class="i-desc">Sales, strategy, and the hustle. Learning the game early and playing it hard.</p>
+      </div>
+      <div class="interest-card reveal d4">
+        <div class="i-num">04</div>
+        <span class="i-icon">📚</span>
+        <div class="i-name">Student</div>
+        <p class="i-desc">Austin Waldorf School. Education that goes beyond the classroom — creative, grounded, real.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <p class="section-label reveal">Get In Touch</p>
+    <h2 class="contact-heading reveal d1">Let's<br/>Link Up.</h2>
+    <div class="contact-btns reveal d2">
+      <a href="mailto:tigervroman@gmail.com" class="contact-btn"><span>✉ &nbsp;Email Me</span></a>
+      <a href="https://instagram.com/tiger.vroman" target="_blank" class="contact-btn"><span>◈ &nbsp;Instagram</span></a>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Tiger Vroman</p>
+    <p>Austin, TX</p>
+  </footer>
+
+  <script>
+    // Cursor
+    const cur = document.getElementById('cursor');
+    const ring = document.getElementById('cursor-ring');
+    let mx = -200, my = -200, rx = -200, ry = -200;
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    (function tick() {
+      cur.style.left = mx + 'px'; cur.style.top = my + 'px';
+      rx += (mx - rx) * 0.13; ry += (my - ry) * 0.13;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(tick);
+    })();
+
+    // Particle canvas
+    const canvas = document.getElementById('hero-canvas');
+    const ctx = canvas.getContext('2d');
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize(); window.addEventListener('resize', resize);
+
+    const NUM = 130;
+    const pts = Array.from({ length: NUM }, () => ({
+      x: Math.random() * innerWidth,
+      y: Math.random() * innerHeight,
+      vx: (Math.random() - 0.5) * 0.45,
+      vy: (Math.random() - 0.5) * 0.45,
+      r: Math.random() * 1.3 + 0.3,
+      a: Math.random() * 0.45 + 0.08,
+    }));
+
+    let pmx = -999, pmy = -999;
+    document.addEventListener('mousemove', e => { pmx = e.clientX; pmy = e.clientY; });
+
+    (function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let i = 0; i < NUM; i++) {
+        for (let j = i + 1; j < NUM; j++) {
+          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+          const d = Math.hypot(dx, dy);
+          if (d < 110) {
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.strokeStyle = `rgba(255,61,0,${0.09 * (1 - d / 110)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      pts.forEach(p => {
+        const dx = pmx - p.x, dy = pmy - p.y, d = Math.hypot(dx, dy);
+        if (d < 130) { p.x -= dx * 0.025; p.y -= dy * 0.025; }
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,61,0,${p.a})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(draw);
+    })();
+
+    // Scroll reveal
+    const obs = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+      { threshold: 0.1 }
+    );
+    document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+  </script>
+</body>
+</html>
