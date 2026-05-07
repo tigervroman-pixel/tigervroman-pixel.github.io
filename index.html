@@ -1,644 +1,670 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Tiger Vroman</title>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #080808;
-      --text: #F0EDE8;
-      --accent: #8B5CF6;
-      --gold: #C084FC;
-      --muted: #555;
-      --border: #1C1C1C;
-    }
-    html { scroll-behavior: smooth; }
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 300;
-      overflow-x: hidden;
-      cursor: none;
-    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#080808;--text:#F0EDE8;--accent:#8B5CF6;--purple-light:#C084FC;--muted:#555;--border:#1C1C1C}
+    html{scroll-behavior:smooth}
+    ::-webkit-scrollbar{width:3px}
+    ::-webkit-scrollbar-track{background:var(--bg)}
+    ::-webkit-scrollbar-thumb{background:var(--accent);border-radius:2px}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-weight:300;overflow-x:hidden;cursor:none}
+
+    /* NOISE */
+    body::after{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");opacity:0.032;pointer-events:none;z-index:998;animation:noiseAnim 0.15s steps(2) infinite}
+    @keyframes noiseAnim{0%{background-position:0 0}25%{background-position:50% 20%}50%{background-position:20% 50%}75%{background-position:80% 30%}100%{background-position:40% 80%}}
+
+    /* LOADER */
+    #loader{position:fixed;inset:0;z-index:9000;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 1s cubic-bezier(0.77,0,0.175,1)}
+    #loader.out{transform:translateY(-100%)}
+    .loader-dollar{font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,12vw,9rem);color:var(--accent);letter-spacing:.05em;text-shadow:0 0 40px rgba(139,92,246,0.6),0 0 80px rgba(139,92,246,0.3);line-height:1;margin-bottom:1rem}
+    .loader-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.2rem,4vw,2.5rem);letter-spacing:.4em;color:rgba(240,237,232,0.15);text-transform:uppercase;opacity:0;transition:opacity .3s;margin-bottom:3rem}
+    .loader-name.show{opacity:1}
+    .loader-bar-wrap{width:200px;height:1px;background:rgba(139,92,246,0.2);overflow:hidden}
+    .loader-bar-fill{height:100%;background:var(--accent);width:0%;box-shadow:0 0 8px rgba(139,92,246,0.8);transition:width .05s linear}
+    .loader-skip{position:absolute;bottom:2rem;right:2rem;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);cursor:none;border:none;background:none;color:var(--muted);transition:color .2s}
+    .loader-skip:hover{color:var(--text)}
+
+    /* PROGRESS BAR */
+    #progress{position:fixed;top:0;left:0;height:2px;background:var(--accent);z-index:500;width:0%;box-shadow:0 0 10px rgba(139,92,246,0.9),0 0 20px rgba(139,92,246,0.4);transition:width .08s linear}
 
     /* CURSOR */
-    #cursor { position: fixed; width: 8px; height: 8px; background: var(--accent); border-radius: 50%; pointer-events: none; z-index: 9999; transform: translate(-50%,-50%); }
-    #cursor-ring { position: fixed; width: 36px; height: 36px; border: 1px solid rgba(139,92,246,0.7); border-radius: 50%; pointer-events: none; z-index: 9998; transform: translate(-50%,-50%); transition: width .3s, height .3s, border-color .3s; }
-    #trail-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
+    #cursor{position:fixed;width:6px;height:6px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);box-shadow:0 0 8px rgba(139,92,246,0.8)}
+    #cursor-ring{position:fixed;width:34px;height:34px;border:1.5px solid rgba(139,92,246,0.7);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .25s,height .25s,opacity .25s;box-shadow:0 0 12px rgba(139,92,246,0.2)}
+    #cursor-ring.big{width:60px;height:60px;opacity:.5}
+    #trail-canvas{position:fixed;inset:0;pointer-events:none;z-index:9997}
 
     /* NAV */
-    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 1.5rem 3rem; background: rgba(8,8,8,0.88); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); }
-    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; letter-spacing: .1em; color: var(--text); text-decoration: none; }
-    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
-    .nav-links a { font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); text-decoration: none; position: relative; transition: color .2s; }
-    .nav-links a:hover { color: var(--text); }
-    .nav-links a::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--accent); transition: width .3s; }
-    .nav-links a:hover::after { width: 100%; }
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;justify-content:space-between;align-items:center;padding:1.4rem 3rem;background:rgba(8,8,8,0.9);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+    .nav-logo{font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.1em;color:var(--text);text-decoration:none;position:relative}
+    .nav-logo::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--accent);transition:width .4s;box-shadow:0 0 6px var(--accent)}
+    .nav-logo:hover::after{width:100%}
+    .nav-links{display:flex;gap:2.5rem;list-style:none}
+    .nav-links a{font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);text-decoration:none;position:relative;transition:color .2s}
+    .nav-links a:hover{color:var(--text)}
+    .nav-links a::after{content:'';position:absolute;bottom:-3px;left:0;width:0;height:1px;background:var(--accent);box-shadow:0 0 6px var(--accent);transition:width .3s}
+    .nav-links a:hover::after{width:100%}
 
     /* HERO */
-    #hero { position: relative; height: 100vh; display: flex; align-items: center; overflow: hidden; }
-    #hero-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .hero-content { position: relative; z-index: 2; padding: 0 3rem; }
-    .hero-tag { font-size: .68rem; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.8rem; opacity: 0; animation: fadeUp .7s .4s ease forwards; }
-    .hero-name { font-family: 'Bebas Neue', sans-serif; font-size: clamp(5.5rem,15vw,14rem); line-height: .88; letter-spacing: -.01em; margin-bottom: 2.5rem; }
-    .hero-name .line { display: block; overflow: hidden; }
-    .hero-name .line span { display: block; opacity: 0; transform: translateY(110%); animation: slideUp 1s cubic-bezier(.16,1,.3,1) forwards; }
-    .hero-name .line:nth-child(1) span { animation-delay: .5s; }
-    .hero-name .line:nth-child(2) span { animation-delay: .72s; color: var(--accent); }
-    .glitch { position: relative; }
-    .glitch::before, .glitch::after { content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-    .glitch::before { color: #a78bfa; animation: glitch1 8s 3s infinite; clip-path: polygon(0 0,100% 0,100% 35%,0 35%); }
-    .glitch::after { color: #7c3aed; animation: glitch2 8s 3s infinite; clip-path: polygon(0 65%,100% 65%,100% 100%,0 100%); }
-    .hero-sub { font-size: .95rem; letter-spacing: .04em; color: var(--muted); line-height: 1.85; opacity: 0; animation: fadeUp .8s 1.15s ease forwards; }
-    .hero-scroll { position: absolute; bottom: 2.5rem; left: 3rem; display: flex; align-items: center; gap: 1rem; font-size: .62rem; letter-spacing: .22em; text-transform: uppercase; color: var(--muted); opacity: 0; animation: fadeUp .8s 1.6s ease forwards; }
-    .scroll-line { width: 40px; height: 1px; background: var(--accent); animation: blink 2s ease infinite; }
+    #hero{position:relative;height:100vh;display:flex;align-items:center;overflow:hidden}
+    #hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 25% 50%,rgba(139,92,246,0.07) 0%,transparent 65%),radial-gradient(ellipse at 75% 60%,rgba(192,132,252,0.04) 0%,transparent 60%);animation:heroGlow 8s ease infinite alternate;pointer-events:none;z-index:1}
+    @keyframes heroGlow{from{opacity:.5}to{opacity:1}}
+    #hero-canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+    .hero-content{position:relative;z-index:2;padding:0 3rem}
+    .hero-tag{font-size:.65rem;letter-spacing:.25em;text-transform:uppercase;color:var(--accent);margin-bottom:1.8rem;opacity:0;animation:fadeUp .7s .3s ease forwards;text-shadow:0 0 20px rgba(139,92,246,0.5)}
+    .hero-name{font-family:'Bebas Neue',sans-serif;font-size:clamp(5.5rem,15vw,14rem);line-height:.88;letter-spacing:-.01em;margin-bottom:2rem}
+    .hero-name .line{display:block;overflow:hidden}
+    .hero-name .line span{display:block;opacity:0;transform:translateY(110%);animation:slideUp 1s cubic-bezier(.16,1,.3,1) forwards}
+    .hero-name .line:nth-child(1) span{animation-delay:.2s}
+    .hero-name .line:nth-child(2) span{animation-delay:.4s;color:var(--accent);text-shadow:0 0 60px rgba(139,92,246,0.4)}
+    .hero-sub{font-size:.9rem;letter-spacing:.04em;color:var(--muted);line-height:1.85;opacity:0;min-height:2em}
+    .hero-bottom{position:absolute;bottom:2.5rem;left:3rem;right:3rem;display:flex;align-items:center;justify-content:space-between;opacity:0;animation:fadeUp .8s 2s ease forwards}
+    .hero-scroll{display:flex;align-items:center;gap:1rem;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+    .scroll-line{width:40px;height:1px;background:var(--accent);animation:blink 2s ease infinite;box-shadow:0 0 6px var(--accent)}
+    .hero-stats-mini{display:flex;gap:2rem}
+    .mini-stat{text-align:right}
+    .mini-num{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--accent);text-shadow:0 0 20px rgba(139,92,246,0.5)}
+    .mini-lbl{font-size:.55rem;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-top:.1rem}
 
     /* MARQUEE */
-    .marquee-wrap { background: var(--accent); padding: .85rem 0; overflow: hidden; white-space: nowrap; }
-    .marquee-wrap.reverse { background: #111; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-    .marquee-track { display: inline-flex; animation: marquee 22s linear infinite; }
-    .marquee-wrap.reverse .marquee-track { animation: marqueeRev 18s linear infinite; }
-    .marquee-word { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: .2em; color: var(--bg); padding: 0 2rem; }
-    .marquee-wrap.reverse .marquee-word { color: var(--gold); }
-    .marquee-dot { color: rgba(0,0,0,0.25); }
-    .marquee-wrap.reverse .marquee-dot { color: rgba(200,168,75,0.3); }
+    .marquee-wrap{padding:.8rem 0;overflow:hidden;white-space:nowrap;background:var(--accent);border-top:none;border-bottom:none}
+    .marquee-wrap.rev{background:#0D0D0D;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+    .marquee-track{display:inline-flex;animation:marquee 24s linear infinite}
+    .marquee-wrap.rev .marquee-track{animation:marqueeRev 18s linear infinite}
+    .marquee-word{font-family:'Bebas Neue',sans-serif;font-size:.95rem;letter-spacing:.2em;color:#050505;padding:0 2rem}
+    .marquee-wrap.rev .marquee-word{color:var(--purple-light)}
+    .m-dot{color:rgba(0,0,0,.2)}
+    .marquee-wrap.rev .m-dot{color:rgba(192,132,252,.25)}
 
-    /* FLOATING MONEY OVERLAY */
-    .money-overlay { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 1; }
-    .money-sym { position: absolute; font-family: 'Bebas Neue', sans-serif; color: #0a0a0a; -webkit-text-stroke: 1.5px #8B5CF6; text-shadow: 0 0 12px rgba(139,92,246,0.5); opacity: 0; animation: floatUp var(--dur, 8s) var(--delay, 0s) linear infinite; font-size: var(--size, 1.5rem); left: var(--left, 50%); }
-    @keyframes floatUp {
-      0% { transform: translateY(110%) rotate(var(--rot,0deg)); opacity: 0; }
-      10% { opacity: var(--op, 0.06); }
-      90% { opacity: var(--op, 0.06); }
-      100% { transform: translateY(-20%) rotate(calc(var(--rot,0deg) + 15deg)); opacity: 0; }
-    }
+    /* SECTION SHARED */
+    .section-label{font-size:.6rem;letter-spacing:.28em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;text-shadow:0 0 20px rgba(139,92,246,0.4)}
+    .section-bg-num{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:22rem;color:rgba(139,92,246,0.025);line-height:1;pointer-events:none;right:1rem;top:50%;transform:translateY(-50%);z-index:0;user-select:none}
 
     /* ABOUT */
-    #about { padding: 9rem 3rem; display: grid; grid-template-columns: 1fr 1.6fr; gap: 7rem; align-items: start; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
-    .section-label { font-size: .62rem; letter-spacing: .28em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
-    .about-heading { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3.5rem,6vw,5.5rem); line-height: .95; letter-spacing: .02em; }
-    .about-text { font-size: 1rem; color: #888; line-height: 1.95; }
-    .about-text p + p { margin-top: 1.2rem; }
-    .about-belief { border-left: 2px solid var(--gold); padding: 1rem 1.5rem; margin: 2rem 0; font-size: .95rem; color: #777; line-height: 1.8; font-style: italic; }
-    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 2.5rem; }
-    .stat { border-left: 2px solid var(--accent); padding-left: 1rem; }
-    .stat-number { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1; }
-    .stat-number.gold { color: var(--gold); text-shadow: 0 0 30px rgba(200,168,75,0.4); }
-    .stat-label { font-size: .65rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: .3rem; }
+    #about{padding:9rem 3rem;display:grid;grid-template-columns:1fr 1.6fr;gap:7rem;align-items:start;border-top:1px solid var(--border);position:relative;overflow:hidden}
+    .about-heading{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.5rem,6vw,5.5rem);line-height:.95;letter-spacing:.02em}
+    .about-text{font-size:1rem;color:#888;line-height:1.95}
+    .about-text p+p{margin-top:1.2rem}
+    .about-belief{border-left:2px solid var(--accent);padding:1rem 1.5rem;margin:2rem 0;font-size:.92rem;color:#666;line-height:1.85;font-style:italic;box-shadow:inset 2px 0 0 rgba(139,92,246,0.3),-4px 0 20px rgba(139,92,246,0.05)}
+    .about-stats{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:2.5rem}
+    .stat{border-left:2px solid var(--accent);padding-left:1rem;position:relative}
+    .stat-number{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1}
+    .stat-number.glow{color:var(--accent);text-shadow:0 0 30px rgba(139,92,246,0.5)}
+    .stat-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:.3rem}
+    .money-overlay{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1}
+    .money-sym{position:absolute;font-family:'Bebas Neue',sans-serif;color:#0a0a0a;-webkit-text-stroke:1.5px #8B5CF6;text-shadow:0 0 16px rgba(139,92,246,0.5);opacity:0;animation:floatUp var(--dur,8s) var(--delay,0s) linear infinite;font-size:var(--size,1.5rem);left:var(--left,50%)}
+    @keyframes floatUp{0%{transform:translateY(110%) rotate(var(--rot,0deg));opacity:0}10%{opacity:var(--op,.15)}90%{opacity:var(--op,.15)}100%{transform:translateY(-20%) rotate(calc(var(--rot,0deg) + 15deg));opacity:0}}
 
     /* CUTCO */
-    #cutco { padding: 8rem 3rem; border-top: 1px solid var(--border); background: #0A0A0A; position: relative; overflow: hidden; }
-    .cutco-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; position: relative; z-index: 2; }
-    .cutco-heading { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem,5vw,4.5rem); line-height: .95; margin-bottom: 1.5rem; }
-    .cutco-text { font-size: .95rem; color: #888; line-height: 1.9; }
-    .cutco-wins { display: flex; flex-direction: column; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-    .win-item { background: var(--bg); padding: 1.8rem 2rem; display: flex; align-items: flex-start; gap: 1.5rem; transition: background .3s, transform .3s; transform-style: preserve-3d; }
-    .win-item:hover { background: #111; }
-    .win-icon { font-size: 1.5rem; flex-shrink: 0; margin-top: .1rem; }
-    .win-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.3rem; letter-spacing: .04em; margin-bottom: .3rem; }
-    .win-title.gold { color: var(--gold); }
-    .win-desc { font-size: .8rem; color: var(--muted); line-height: 1.6; }
-    .big-dollar { position: absolute; font-family: 'Bebas Neue', sans-serif; font-size: 28rem; color: rgba(139,92,246,0.04); line-height: 1; top: 50%; right: -2rem; transform: translateY(-50%); pointer-events: none; z-index: 1; animation: pulse 4s ease infinite; }
+    #cutco{padding:8rem 3rem;border-top:1px solid var(--border);background:#060606;position:relative;overflow:hidden}
+    .cutco-inner{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;position:relative;z-index:2}
+    .cutco-heading{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,5vw,4.5rem);line-height:.95;margin-bottom:1.5rem}
+    .cutco-text{font-size:.95rem;color:#888;line-height:1.9}
+    .cutco-wins{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border)}
+    .win-item{background:var(--bg);padding:1.8rem 2rem;display:flex;align-items:flex-start;gap:1.5rem;transition:background .3s;transform-style:preserve-3d}
+    .win-item:hover{background:#0F0F0F}
+    .win-icon{font-size:1.4rem;flex-shrink:0;margin-top:.1rem}
+    .win-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:.04em;margin-bottom:.3rem}
+    .win-title.glow{color:var(--accent);text-shadow:0 0 20px rgba(139,92,246,0.5)}
+    .win-desc{font-size:.78rem;color:var(--muted);line-height:1.6}
+    .big-dollar{position:absolute;font-family:'Bebas Neue',sans-serif;font-size:30rem;color:rgba(139,92,246,0.03);line-height:1;top:50%;right:-2rem;transform:translateY(-50%);pointer-events:none;z-index:1;animation:pulse 5s ease infinite}
 
     /* INTERESTS */
-    #interests { padding: 8rem 3rem; border-top: 1px solid var(--border); }
-    .section-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4rem; }
-    .section-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2.8rem,5vw,4.5rem); letter-spacing: .02em; }
-    .section-num { font-family: 'Space Mono', monospace; font-size: .7rem; color: var(--muted); letter-spacing: .1em; }
-    .interest-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-    .interest-card { background: var(--bg); padding: 2.5rem 2rem 3rem; position: relative; overflow: hidden; transition: transform .3s; }
-    .interest-card::before { content: ''; position: absolute; inset: 0; background: var(--accent); transform: translateY(101%); transition: transform .45s cubic-bezier(.16,1,.3,1); }
-    .interest-card:hover::before { transform: translateY(0); }
-    .interest-card:hover { transform: scale(1.02); }
-    .i-num { font-family: 'Space Mono', monospace; font-size: .65rem; color: var(--muted); letter-spacing: .1em; margin-bottom: 2rem; position: relative; z-index: 1; transition: color .3s; }
-    .interest-card:hover .i-num { color: rgba(0,0,0,.35); }
-    .i-icon { font-size: 2.2rem; margin-bottom: 1.2rem; position: relative; z-index: 1; display: block; transition: transform .4s cubic-bezier(.16,1,.3,1); }
-    .interest-card:hover .i-icon { transform: scale(1.2) rotate(-5deg); }
-    .i-name { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: .04em; position: relative; z-index: 1; transition: color .3s; margin-bottom: .6rem; }
-    .interest-card:hover .i-name { color: var(--bg); }
-    .i-desc { font-size: .78rem; color: var(--muted); line-height: 1.7; position: relative; z-index: 1; transition: color .3s; }
-    .interest-card:hover .i-desc { color: rgba(0,0,0,.6); }
+    #interests{padding:8rem 3rem;border-top:1px solid var(--border);position:relative;overflow:hidden}
+    .section-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4rem;position:relative;z-index:2}
+    .section-title{font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,5vw,4.5rem);letter-spacing:.02em}
+    .section-num{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--muted);letter-spacing:.1em}
+    .interest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);position:relative;z-index:2}
+    .interest-card{background:var(--bg);padding:2.5rem 2rem 3rem;position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .1s ease}
+    .interest-card::before{content:'';position:absolute;inset:0;background:var(--accent);transform:translateY(101%);transition:transform .45s cubic-bezier(.16,1,.3,1)}
+    .interest-card:hover::before{transform:translateY(0)}
+    .i-num{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--muted);letter-spacing:.1em;margin-bottom:2rem;position:relative;z-index:1;transition:color .3s}
+    .interest-card:hover .i-num{color:rgba(0,0,0,.35)}
+    .i-icon{font-size:2.2rem;margin-bottom:1.2rem;position:relative;z-index:1;display:block;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+    .interest-card:hover .i-icon{transform:scale(1.25) rotate(-8deg)}
+    .i-name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;letter-spacing:.04em;position:relative;z-index:1;transition:color .3s;margin-bottom:.6rem}
+    .interest-card:hover .i-name{color:var(--bg)}
+    .i-desc{font-size:.78rem;color:var(--muted);line-height:1.7;position:relative;z-index:1;transition:color .3s}
+    .interest-card:hover .i-desc{color:rgba(0,0,0,.6)}
+
+    /* TRAVEL */
+    #travel{padding:8rem 3rem;border-top:1px solid var(--border);background:#060606;position:relative;overflow:hidden}
+    .travel-inner{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start;position:relative;z-index:2}
+    .travel-heading{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,5vw,4.5rem);line-height:.95;margin-bottom:1.5rem}
+    .travel-text{font-size:.95rem;color:#888;line-height:1.9}
+    .travel-wins{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border)}
 
     /* MUSIC */
-    #music { padding: 8rem 3rem; border-top: 1px solid var(--border); background: #0A0A0A; }
-    .music-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; }
-    .music-heading { font-family: 'Bebas Neue', sans-serif; font-size: clamp(3rem,5vw,4.5rem); line-height: .95; margin-bottom: 1.5rem; }
-    .music-text { font-size: .95rem; color: #888; line-height: 1.9; margin-bottom: 2rem; }
-    .artist-list { display: flex; flex-wrap: wrap; gap: .6rem; }
-    .artist-tag { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; border: 1px solid var(--border); padding: .4rem .9rem; color: var(--muted); transition: all .3s; cursor: default; }
-    .artist-tag:hover { border-color: var(--accent); color: var(--text); background: rgba(255,61,0,0.08); transform: translateY(-2px); }
-    .music-production { margin-top: 2rem; padding: 1.5rem; border: 1px solid var(--border); font-size: .85rem; color: #666; line-height: 1.7; position: relative; overflow: hidden; }
-    .music-production::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,61,0,0.05), transparent); animation: shimmer 3s ease infinite; }
-    .music-production strong { display: block; font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: .05em; color: var(--accent); margin-bottom: .4rem; font-weight: 400; }
+    #music{padding:8rem 3rem;border-top:1px solid var(--border);position:relative;overflow:hidden}
+    .music-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center;position:relative;z-index:2}
+    .music-heading{font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,5vw,4.5rem);line-height:.95;margin-bottom:1.5rem}
+    .music-text{font-size:.95rem;color:#888;line-height:1.9;margin-bottom:2rem}
+    .artist-list{display:flex;flex-wrap:wrap;gap:.6rem;margin-bottom:2rem}
+    .artist-tag{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border);padding:.4rem .9rem;color:var(--muted);transition:all .3s;cursor:default}
+    .artist-tag:hover{border-color:var(--accent);color:var(--text);background:rgba(139,92,246,0.08);transform:translateY(-2px);box-shadow:0 0 12px rgba(139,92,246,0.2)}
+    .music-production{padding:1.5rem;border:1px solid var(--border);font-size:.85rem;color:#666;line-height:1.7;position:relative;overflow:hidden}
+    .music-production::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(139,92,246,0.07),transparent);animation:shimmer 3s ease infinite}
+    .music-production strong{display:block;font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:.05em;color:var(--accent);margin-bottom:.4rem;font-weight:400}
+    /* EQUALIZER */
+    .eq{display:flex;align-items:flex-end;gap:3px;height:60px;margin-top:2rem}
+    .eq-bar{width:3px;background:var(--accent);border-radius:2px 2px 0 0;box-shadow:0 0 6px rgba(139,92,246,0.5);animation:eqBounce var(--dur,.5s) var(--delay,0s) ease-in-out infinite alternate}
+    @keyframes eqBounce{from{height:3px;opacity:.4}to{height:var(--h,20px);opacity:1}}
 
     /* MINDSET */
-    #mindset { padding: 8rem 3rem; border-top: 1px solid var(--border); text-align: center; position: relative; overflow: hidden; }
-    .mindset-bg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
-    .mindset-bg-text { font-family: 'Bebas Neue', sans-serif; font-size: 20rem; color: rgba(139,92,246,0.03); line-height: 1; white-space: nowrap; animation: pulse 6s ease infinite; }
-    .mindset-label { font-size: .62rem; letter-spacing: .28em; text-transform: uppercase; color: var(--accent); margin-bottom: 2rem; position: relative; z-index: 2; }
-    .mindset-quote { font-family: 'Bebas Neue', sans-serif; font-size: clamp(2rem,4vw,3.5rem); line-height: 1.1; letter-spacing: .02em; max-width: 900px; margin: 0 auto 1.5rem; color: #2A2A2A; position: relative; z-index: 2; }
-    .mindset-quote span { color: var(--text); }
-    .mindset-quote .gold-word { color: var(--gold); }
-    .mindset-sub { font-size: .85rem; color: var(--muted); max-width: 500px; margin: 0 auto; line-height: 1.8; position: relative; z-index: 2; }
+    #mindset{padding:8rem 3rem;border-top:1px solid var(--border);text-align:center;position:relative;overflow:hidden;background:#060606}
+    .mindset-bg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+    .mindset-bg-text{font-family:'Bebas Neue',sans-serif;font-size:18rem;color:rgba(139,92,246,0.025);line-height:1;white-space:nowrap;animation:pulse 7s ease infinite}
+    .mindset-quote{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,4vw,3.5rem);line-height:1.1;letter-spacing:.02em;max-width:880px;margin:0 auto 1.5rem;color:#222;position:relative;z-index:2}
+    .mindset-quote span{color:var(--text)}
+    .mindset-quote .gw{color:var(--accent);text-shadow:0 0 30px rgba(139,92,246,0.4)}
+    .mindset-sub{font-size:.88rem;color:var(--muted);max-width:500px;margin:0 auto;line-height:1.8;position:relative;z-index:2}
 
     /* CONTACT */
-    #contact { padding: 9rem 3rem; border-top: 1px solid var(--border); text-align: center; position: relative; overflow: hidden; }
-    .contact-heading { font-family: 'Bebas Neue', sans-serif; font-size: clamp(4.5rem,11vw,10rem); line-height: .92; letter-spacing: .01em; margin-bottom: 1rem; }
-    .contact-sub { font-size: .9rem; color: var(--muted); margin-bottom: 3rem; line-height: 1.7; }
-    .contact-btns { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
-    .contact-btn { display: inline-block; padding: 1rem 2.2rem; font-size: .72rem; letter-spacing: .18em; text-transform: uppercase; text-decoration: none; color: var(--text); border: 1px solid #8B5CF6; background: rgba(139,92,246,0.15); position: relative; overflow: hidden; transition: letter-spacing .3s, box-shadow .3s; box-shadow: 0 0 12px rgba(139,92,246,0.3), inset 0 0 12px rgba(139,92,246,0.05); }
-    .contact-btn:hover { letter-spacing: .22em; box-shadow: 0 0 28px rgba(139,92,246,0.7), 0 0 60px rgba(139,92,246,0.3), inset 0 0 20px rgba(139,92,246,0.1); }
-    .contact-btn span { position: relative; z-index: 1; }
-    .contact-pulse { position: absolute; width: 600px; height: 600px; border-radius: 50%; border: 1px solid rgba(255,61,0,0.06); top: 50%; left: 50%; transform: translate(-50%,-50%); animation: ripple 4s ease infinite; pointer-events: none; }
-    .contact-pulse:nth-child(2) { animation-delay: 1.3s; }
-    .contact-pulse:nth-child(3) { animation-delay: 2.6s; }
+    #contact{padding:9rem 3rem;border-top:1px solid var(--border);text-align:center;position:relative;overflow:hidden}
+    .contact-heading{font-family:'Bebas Neue',sans-serif;font-size:clamp(4.5rem,11vw,10rem);line-height:.92;letter-spacing:.01em;margin-bottom:1rem}
+    .contact-sub{font-size:.9rem;color:var(--muted);margin-bottom:3rem;line-height:1.7}
+    .contact-btns{display:flex;justify-content:center;gap:1.5rem;flex-wrap:wrap}
+    .contact-btn{display:inline-block;padding:1.1rem 2.5rem;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;color:var(--text);border:1px solid #8B5CF6;background:rgba(139,92,246,0.1);position:relative;overflow:hidden;box-shadow:0 0 14px rgba(139,92,246,0.25),inset 0 0 14px rgba(139,92,246,0.05);transition:box-shadow .3s,letter-spacing .3s,transform .3s}
+    .contact-btn:hover{box-shadow:0 0 35px rgba(139,92,246,0.7),0 0 70px rgba(139,92,246,0.25),inset 0 0 20px rgba(139,92,246,0.1);letter-spacing:.22em}
+    .contact-btn span{position:relative;z-index:1}
+    .pulse-ring{position:absolute;width:700px;height:700px;border-radius:50%;border:1px solid rgba(139,92,246,0.05);top:50%;left:50%;transform:translate(-50%,-50%);animation:ripple 5s ease infinite;pointer-events:none}
+    .pulse-ring:nth-child(2){animation-delay:1.6s}
+    .pulse-ring:nth-child(3){animation-delay:3.2s}
 
     /* FOOTER */
-    footer { padding: 1.5rem 3rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    footer p { font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    footer{padding:1.5rem 3rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+    footer p{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 
     /* KEYFRAMES */
-    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    @keyframes marqueeRev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
-    @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: .2; } }
-    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
-    @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
-    @keyframes ripple { 0% { transform: translate(-50%,-50%) scale(.8); opacity: 1; } 100% { transform: translate(-50%,-50%) scale(2); opacity: 0; } }
-    @keyframes glitch1 {
-      0%,89%,100% { transform: none; opacity: 0; }
-      90% { transform: translateX(-3px) skewX(-5deg); opacity: .7; }
-      92% { transform: translateX(3px) skewX(5deg); opacity: .7; }
-      94% { transform: none; opacity: 0; }
-    }
-    @keyframes glitch2 {
-      0%,89%,100% { transform: none; opacity: 0; }
-      90% { transform: translateX(3px) skewX(3deg); opacity: .7; }
-      92% { transform: translateX(-3px); opacity: .7; }
-      94% { transform: none; opacity: 0; }
-    }
-    @keyframes fromLeft { from { opacity: 0; transform: translateX(-40px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes fromRight { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes slideUp{to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    @keyframes marqueeRev{from{transform:translateX(-50%)}to{transform:translateX(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.15}}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+    @keyframes shimmer{0%{left:-100%}100%{left:200%}}
+    @keyframes ripple{0%{transform:translate(-50%,-50%) scale(.5);opacity:1}100%{transform:translate(-50%,-50%) scale(2.2);opacity:0}}
 
-    /* REVEAL */
-    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s ease, transform .9s cubic-bezier(.16,1,.3,1); }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .reveal-left { opacity: 0; transform: translateX(-40px); transition: opacity .9s ease, transform .9s cubic-bezier(.16,1,.3,1); }
-    .reveal-left.visible { opacity: 1; transform: translateX(0); }
-    .reveal-right { opacity: 0; transform: translateX(40px); transition: opacity .9s ease, transform .9s cubic-bezier(.16,1,.3,1); }
-    .reveal-right.visible { opacity: 1; transform: translateX(0); }
-    .d1 { transition-delay: .1s; } .d2 { transition-delay: .2s; } .d3 { transition-delay: .3s; } .d4 { transition-delay: .4s; }
+    /* REVEALS */
+    .reveal,.reveal-l,.reveal-r{opacity:0;transition:opacity .9s ease,transform .9s cubic-bezier(.16,1,.3,1)}
+    .reveal{transform:translateY(30px)}
+    .reveal-l{transform:translateX(-40px)}
+    .reveal-r{transform:translateX(40px)}
+    .reveal.on,.reveal-l.on,.reveal-r.on{opacity:1;transform:none}
+    .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
 
-    @media (max-width: 768px) {
-      nav { padding: 1.2rem 1.5rem; } .nav-links { display: none; }
-      .hero-content { padding: 0 1.5rem; } .hero-scroll { left: 1.5rem; }
-      #about { grid-template-columns: 1fr; gap: 3rem; padding: 6rem 1.5rem; }
-      .cutco-inner { grid-template-columns: 1fr; gap: 3rem; } #cutco { padding: 6rem 1.5rem; }
-      #interests { padding: 6rem 1.5rem; } .interest-grid { grid-template-columns: 1fr 1fr; }
-      .music-grid { grid-template-columns: 1fr; gap: 3rem; } #music { padding: 6rem 1.5rem; }
-      #mindset { padding: 6rem 1.5rem; } #contact { padding: 6rem 1.5rem; }
-      footer { padding: 1.5rem; flex-direction: column; gap: .5rem; }
+    @media(max-width:768px){
+      nav{padding:1.2rem 1.5rem}.nav-links{display:none}
+      .hero-content{padding:0 1.5rem}
+      #about,#cutco .cutco-inner,.travel-inner,.music-grid{grid-template-columns:1fr;gap:3rem}
+      #about,#cutco,#interests,#travel,#music,#mindset,#contact{padding:6rem 1.5rem}
+      .interest-grid{grid-template-columns:1fr 1fr}
+      footer{padding:1.5rem;flex-direction:column;gap:.5rem}
     }
   </style>
 </head>
 <body>
 
-  <div id="cursor"></div>
-  <div id="cursor-ring"></div>
-  <canvas id="trail-canvas"></canvas>
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-dollar" id="lcount">$0</div>
+  <div class="loader-name" id="lname">TIGER VROMAN</div>
+  <div class="loader-bar-wrap"><div class="loader-bar-fill" id="lbar"></div></div>
+  <button class="loader-skip" id="lskip">Skip →</button>
+</div>
 
-  <nav>
-    <a href="#hero" class="nav-logo">TV</a>
-    <ul class="nav-links">
-      <li><a href="#about">About</a></li>
-      <li><a href="#cutco">Sales</a></li>
-      <li><a href="#interests">Passions</a></li>
-      <li><a href="#travel">Travel</a></li>
-      <li><a href="#music">Music</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
+<div id="progress"></div>
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+<canvas id="trail-canvas"></canvas>
 
-  <!-- HERO -->
-  <section id="hero">
-    <canvas id="hero-canvas"></canvas>
-    <div class="hero-content">
-      <p class="hero-tag">Austin, TX &nbsp;·&nbsp; 16 &nbsp;·&nbsp; Student &amp; Entrepreneur</p>
-      <h1 class="hero-name">
-        <span class="line"><span>Tiger</span></span>
-        <span class="line"><span>Vroman</span></span>
-      </h1>
-      <p class="hero-sub">Sales. Music. Fashion. Building something real — starting now.</p>
-    </div>
+<nav>
+  <a href="#hero" class="nav-logo">TV</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#cutco">Sales</a></li>
+    <li><a href="#interests">Passions</a></li>
+    <li><a href="#travel">Travel</a></li>
+    <li><a href="#music">Music</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <p class="hero-tag">Austin, TX &nbsp;·&nbsp; 16 &nbsp;·&nbsp; Student &amp; Entrepreneur</p>
+    <h1 class="hero-name">
+      <span class="line"><span>Tiger</span></span>
+      <span class="line"><span>Vroman</span></span>
+    </h1>
+    <p class="hero-sub" id="hero-sub"></p>
+  </div>
+  <div class="hero-bottom">
     <div class="hero-scroll"><div class="scroll-line"></div>Scroll</div>
-  </section>
-
-  <!-- MARQUEE 1 -->
-  <div class="marquee-wrap">
-    <div class="marquee-track">
-      <span class="marquee-word">Cutco</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Music</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Fashion</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Austin TX</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Entrepreneur</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Russian Speaker</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Waldorf School</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Sales Rep</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Cutco</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Music</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Fashion</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Austin TX</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Entrepreneur</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Russian Speaker</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Waldorf School</span><span class="marquee-word marquee-dot">✦</span>
-      <span class="marquee-word">Sales Rep</span><span class="marquee-word marquee-dot">✦</span>
+    <div class="hero-stats-mini">
+      <div class="mini-stat"><div class="mini-num">$22K</div><div class="mini-lbl">First 10 Days</div></div>
+      <div class="mini-stat"><div class="mini-num">3+</div><div class="mini-lbl">Continents</div></div>
+      <div class="mini-stat"><div class="mini-num">2</div><div class="mini-lbl">Languages</div></div>
     </div>
   </div>
+</section>
 
-  <!-- MARQUEE 2 (reverse, gold, money-themed) -->
-  <div class="marquee-wrap reverse">
-    <div class="marquee-track">
-      <span class="marquee-word">$22,000 in 10 days</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Start early</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Make money young</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">All-expenses Mexico trip</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Build real connections</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Future entrepreneur</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">$22,000 in 10 days</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Start early</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Make money young</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">All-expenses Mexico trip</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Build real connections</span><span class="marquee-word marquee-dot">$</span>
-      <span class="marquee-word">Future entrepreneur</span><span class="marquee-word marquee-dot">$</span>
+<!-- MARQUEE 1 -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-word">Cutco</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Music</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Fashion</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Austin TX</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Entrepreneur</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Russian Speaker</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Waldorf School</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Himalayas</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Cutco</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Music</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Fashion</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Austin TX</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Entrepreneur</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Russian Speaker</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Waldorf School</span><span class="marquee-word m-dot">✦</span><span class="marquee-word">Himalayas</span><span class="marquee-word m-dot">✦</span>
+  </div>
+</div>
+
+<!-- MARQUEE 2 -->
+<div class="marquee-wrap rev">
+  <div class="marquee-track">
+    <span class="marquee-word">$22,000 in 10 Days</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Start Early</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Mexico Resort Trip</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Adventurous</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Make Money Young</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Future Entrepreneur</span><span class="marquee-word m-dot">$</span><span class="marquee-word">$22,000 in 10 Days</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Start Early</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Mexico Resort Trip</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Adventurous</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Make Money Young</span><span class="marquee-word m-dot">$</span><span class="marquee-word">Future Entrepreneur</span><span class="marquee-word m-dot">$</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="money-overlay" id="about-money"></div>
+  <div class="section-bg-num">01</div>
+  <div class="reveal-l">
+    <p class="section-label">About Me</p>
+    <h2 class="about-heading scramble-head">Who's<br/>Tiger?</h2>
+  </div>
+  <div class="reveal-r d2">
+    <div class="about-text">
+      <p>Tiger Vroman is a 16-year-old student, sales rep, and aspiring entrepreneur based in Austin, TX. A sophomore at Austin Waldorf School, he approaches everything he does with genuine curiosity and an unusual level of self-awareness for his age.</p>
+      <p>Inspired by his father and a circle of successful mentors, Tiger stepped into the world of sales during his spring break — and didn't look back. Fluent in Russian and deeply passionate about music, fashion, and building real connections, he moves through the world with intention.</p>
+    </div>
+    <div class="about-belief">"Most people my age aren't thinking about talking to adults, building real relationships, or making money while they still have no bills to pay. I am — and that changes everything."</div>
+    <div class="about-stats">
+      <div class="stat"><div class="stat-number glow" data-target="22" data-prefix="$" data-suffix="K">$0K</div><div class="stat-label">First 10 Days in Sales</div></div>
+      <div class="stat"><div class="stat-number" data-target="2" data-suffix=" yrs">0 yrs</div><div class="stat-label">At Waldorf School</div></div>
+      <div class="stat"><div class="stat-number" data-target="2" data-suffix=" langs">0 langs</div><div class="stat-label">Languages Spoken</div></div>
+      <div class="stat"><div class="stat-number">∞</div><div class="stat-label">Ambition</div></div>
     </div>
   </div>
+</section>
 
-  <!-- ABOUT -->
-  <section id="about">
-    <div class="money-overlay" id="about-money"></div>
-    <div class="reveal-left">
-      <p class="section-label">About Me</p>
-      <h2 class="about-heading">Who's<br/>Tiger?</h2>
+<!-- CUTCO -->
+<section id="cutco">
+  <div class="big-dollar">$</div>
+  <div class="money-overlay" id="cutco-money"></div>
+  <div class="cutco-inner">
+    <div class="reveal-l">
+      <p class="section-label">Sales</p>
+      <h2 class="cutco-heading scramble-head">Cutco &amp;<br/>The Hustle</h2>
+      <p class="cutco-text">Tiger joined Cutco during spring break of his sophomore year — not because he had to, but because he wanted to see what he was made of. What followed was a masterclass in discipline, connection, and closing. He's not just selling knives. He's learning how the world works, one conversation at a time.</p>
     </div>
-    <div class="reveal-right d2">
-      <div class="about-text">
-        <p>Tiger Vroman is a 16-year-old student, sales rep, and aspiring entrepreneur based in Austin, TX. A sophomore at Austin Waldorf School, he approaches everything he does with genuine curiosity and an unusual level of self-awareness for his age.</p>
-        <p>Inspired by his father and a circle of successful mentors, Tiger stepped into the world of sales during his spring break — and didn't look back. Fluent in Russian and deeply passionate about music, fashion, and building real connections, he moves through the world with intention.</p>
-      </div>
-      <div class="about-belief">"Most people my age aren't thinking about talking to adults, building real relationships, or making money while they still have no bills to pay. I am — and that changes everything."</div>
-      <div class="about-stats">
-        <div class="stat"><div class="stat-number gold" data-count="22000" data-prefix="$" data-suffix="K" data-display="$22K">$22K</div><div class="stat-label">First 10 Days in Sales</div></div>
-        <div class="stat"><div class="stat-number" data-count="2" data-suffix=" yrs">2 yrs</div><div class="stat-label">At Waldorf School</div></div>
-        <div class="stat"><div class="stat-number" data-count="2" data-suffix=" langs">2 langs</div><div class="stat-label">English &amp; Russian</div></div>
-        <div class="stat"><div class="stat-number">∞</div><div class="stat-label">Ambition</div></div>
-      </div>
+    <div class="cutco-wins reveal-r d2">
+      <div class="win-item tilt-card"><div class="win-icon">🏆</div><div><div class="win-title glow">$22K in 10 Days</div><p class="win-desc">Finished the Fast Start with $22,000 in sales in his first 10 days — as a 16-year-old on spring break.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">✈️</div><div><div class="win-title">All-Expenses Trip to Mexico</div><p class="win-desc">Earned a fully paid resort trip alongside the top-performing reps in the program.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">🤝</div><div><div class="win-title">Real-World Network</div><p class="win-desc">Built genuine relationships with successful adults — the kind most people don't make until their 30s.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">🧠</div><div><div class="win-title">Learning the Game Early</div><p class="win-desc">No bills, no overhead — just growth. Building financial habits while most peers aren't even thinking about it.</p></div></div>
     </div>
-  </section>
+  </div>
+  <div class="section-bg-num">02</div>
+</section>
 
-  <!-- CUTCO -->
-  <section id="cutco">
-    <div class="big-dollar">$</div>
-    <div class="money-overlay" id="cutco-money"></div>
-    <div class="cutco-inner">
-      <div class="reveal-left">
-        <p class="section-label">Sales</p>
-        <h2 class="cutco-heading">Cutco &amp;<br/>The Hustle</h2>
-        <p class="cutco-text">Tiger joined Cutco during spring break of his sophomore year — not because he had to, but because he wanted to see what he was made of. What followed was a masterclass in discipline, connection, and closing. He's not just selling knives. He's learning how the world works, one conversation at a time.</p>
-      </div>
-      <div class="cutco-wins reveal-right d2">
-        <div class="win-item">
-          <div class="win-icon">🏆</div>
-          <div>
-            <div class="win-title gold">$22K in 10 Days</div>
-            <p class="win-desc">Finished the Fast Start competition with $22,000 in sales in his first 10 days — as a 16-year-old on spring break.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">✈️</div>
-          <div>
-            <div class="win-title">All-Expenses Trip to Mexico</div>
-            <p class="win-desc">Earned a fully paid resort trip to Mexico alongside the top-performing reps in the program.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">🤝</div>
-          <div>
-            <div class="win-title">Real-World Network</div>
-            <p class="win-desc">Built genuine relationships with successful adults — the kind of connections most people don't make until their 30s.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">🧠</div>
-          <div>
-            <div class="win-title">Learning the Game Early</div>
-            <p class="win-desc">No bills, no overhead — just growth. Building financial habits and sales skills while most peers aren't even thinking about it.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- INTERESTS -->
+<section id="interests">
+  <div class="money-overlay" id="interests-money"></div>
+  <div class="section-bg-num">03</div>
+  <div class="section-header reveal">
+    <h2 class="section-title scramble-head">What I'm Into</h2>
+    <span class="section-num">04 Passions</span>
+  </div>
+  <div class="interest-grid">
+    <div class="interest-card reveal d1"><div class="i-num">01</div><span class="i-icon">🎵</span><div class="i-name">Music</div><p class="i-desc">From Mac Miller to Frank Ocean — introspective, layered, real. Music is a lens Tiger uses to understand the world.</p></div>
+    <div class="interest-card reveal d2"><div class="i-num">02</div><span class="i-icon">🌍</span><div class="i-name">Travel</div><p class="i-desc">Europe, India, Nepal, Russia. Hiked the Himalayas. Bungee jumped off the 10th highest point in the world.</p></div>
+    <div class="interest-card reveal d3"><div class="i-num">03</div><span class="i-icon">📈</span><div class="i-name">Business</div><p class="i-desc">Sales, strategy, and the hustle. Learning the game early and playing it hard — with entrepreneurship always in sight.</p></div>
+    <div class="interest-card reveal d4"><div class="i-num">04</div><span class="i-icon">📚</span><div class="i-name">Student</div><p class="i-desc">Austin Waldorf School. Education that goes beyond the classroom — creative, grounded, real.</p></div>
+  </div>
+</section>
 
-  <!-- INTERESTS -->
-  <section id="interests">
-    <div class="money-overlay" id="interests-money"></div>
-    <div class="section-header reveal">
-      <h2 class="section-title">What I'm Into</h2>
-      <span class="section-num">04 Passions</span>
+<!-- TRAVEL -->
+<section id="travel">
+  <div class="money-overlay" id="travel-money"></div>
+  <div class="section-bg-num">04</div>
+  <div class="travel-inner">
+    <div class="reveal-l">
+      <p class="section-label">World</p>
+      <h2 class="travel-heading scramble-head">Been There.<br/>Done That.</h2>
+      <p class="travel-text">At 16, Tiger has already covered more ground than most people do in a lifetime. From family trips across Russia to a school expedition through the Himalayas — he doesn't just read about the world, he moves through it.</p>
     </div>
-    <div class="interest-grid">
-      <div class="interest-card reveal d1"><div class="i-num">01</div><span class="i-icon">🎵</span><div class="i-name">Music</div><p class="i-desc">From Mac Miller to Frank Ocean — introspective, layered, real. Music is a lens Tiger uses to understand the world.</p></div>
-      <div class="interest-card reveal d2"><div class="i-num">02</div><span class="i-icon">🌍</span><div class="i-name">Travel</div><p class="i-desc">Europe, India, Nepal, Russia. Hiked the Himalayas. Bungee jumped off the 10th highest point in the world. Always moving.</p></div>
-      <div class="interest-card reveal d3"><div class="i-num">03</div><span class="i-icon">📈</span><div class="i-name">Business</div><p class="i-desc">Sales, strategy, and the hustle. Learning the game early and playing it hard — with entrepreneurship always in sight.</p></div>
-      <div class="interest-card reveal d4"><div class="i-num">04</div><span class="i-icon">📚</span><div class="i-name">Student</div><p class="i-desc">Austin Waldorf School. Education that goes beyond the classroom — creative, grounded, real.</p></div>
+    <div class="travel-wins reveal-r d2">
+      <div class="win-item tilt-card"><div class="win-icon">🏔️</div><div><div class="win-title">Hiked the Himalayas</div><p class="win-desc">School expedition to Nepal and India — trekked through some of the most breathtaking terrain on earth.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">🪂</div><div><div class="win-title glow">10th Highest Bungee Jump</div><p class="win-desc">Jumped off the 10th highest bungee point on the planet. Most people wouldn't. Tiger did.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">🌍</div><div><div class="win-title">All Over Europe</div><p class="win-desc">Traveled extensively across Europe — different cultures, cities, perspectives. All before turning 17.</p></div></div>
+      <div class="win-item tilt-card"><div class="win-icon">🇷🇺</div><div><div class="win-title">Russia — Family &amp; Roots</div><p class="win-desc">Multiple trips to Russia to visit family. Where the Russian fluency comes from — and where part of his story lives.</p></div></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- TRAVEL -->
-  <section id="travel" style="padding:8rem 3rem;border-top:1px solid var(--border);background:#0A0A0A;position:relative;overflow:hidden;">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:start;position:relative;z-index:2;">
-      <div class="reveal-left">
-        <p class="section-label">World</p>
-        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,5vw,4.5rem);line-height:.95;margin-bottom:1.5rem;">Been There.<br/>Done That.</h2>
-        <p style="font-size:.95rem;color:#888;line-height:1.9;">At 16, Tiger has already covered more ground than most people do in a lifetime. From family trips across Russia to a school expedition through the Himalayas — he doesn't just read about the world, he moves through it.</p>
-      </div>
-      <div class="reveal-right d2" style="display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);">
-        <div class="win-item">
-          <div class="win-icon">🏔️</div>
-          <div>
-            <div class="win-title">Hiked the Himalayas</div>
-            <p class="win-desc">School expedition to Nepal and India — trekked through some of the most breathtaking and brutal terrain on earth.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">🪂</div>
-          <div>
-            <div class="win-title gold">10th Highest Bungee in the World</div>
-            <p class="win-desc">Jumped off the 10th highest bungee jump point on the planet. Most people wouldn't. Tiger did.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">🌍</div>
-          <div>
-            <div class="win-title">All Over Europe</div>
-            <p class="win-desc">Traveled extensively across Europe — different cultures, different cities, different perspectives. All before turning 17.</p>
-          </div>
-        </div>
-        <div class="win-item">
-          <div class="win-icon">🇷🇺</div>
-          <div>
-            <div class="win-title">Russia — Family & Roots</div>
-            <p class="win-desc">Multiple trips to Russia to visit family. It's where the Russian fluency comes from — and where part of his story lives.</p>
-          </div>
-        </div>
+<!-- MUSIC -->
+<section id="music">
+  <div class="section-bg-num">05</div>
+  <div class="music-grid">
+    <div class="reveal-l">
+      <p class="section-label">Sound</p>
+      <h2 class="music-heading scramble-head">The Music<br/>That Moves<br/>Him</h2>
+      <p class="music-text">Tiger's taste runs deep — thoughtful rap, soulful production, artists who say something real. He's currently exploring music production, looking to create the same kind of feeling his favorite artists give him.</p>
+      <div class="music-production"><strong>Currently Exploring →</strong>Getting into music production — learning the craft behind the sounds that have always moved him most.</div>
+      <div class="eq" id="eq"></div>
+    </div>
+    <div class="reveal-r d2">
+      <p class="section-label" style="margin-bottom:1.5rem">Favourite Artists</p>
+      <div class="artist-list">
+        <span class="artist-tag">Mac Miller</span>
+        <span class="artist-tag">Tyler, The Creator</span>
+        <span class="artist-tag">Childish Gambino</span>
+        <span class="artist-tag">Frank Ocean</span>
+        <span class="artist-tag">OutKast</span>
+        <span class="artist-tag">Travis Scott</span>
+        <span class="artist-tag">Juice WRLD</span>
+        <span class="artist-tag">A$AP Rocky</span>
       </div>
     </div>
-    <div style="position:absolute;font-family:'Bebas Neue',sans-serif;font-size:22rem;color:rgba(200,168,75,0.02);line-height:1;bottom:-2rem;left:-1rem;pointer-events:none;animation:pulse 5s ease infinite;">🌍</div>
-  </section>
+  </div>
+</section>
 
-  <!-- MUSIC -->
-  <section id="music">
-    <div class="music-grid">
-      <div class="reveal-left">
-        <p class="section-label">Sound</p>
-        <h2 class="music-heading">The Music<br/>That Moves<br/>Him</h2>
-        <p class="music-text">Tiger's taste in music runs deep — thoughtful rap, soulful production, artists who say something real. He's currently exploring music production, looking to create the same kind of feeling that his favorite artists give him.</p>
-        <div class="music-production"><strong>Currently Exploring →</strong>Getting into music production — learning the craft behind the sounds that have always moved him most.</div>
-      </div>
-      <div class="reveal-right d2">
-        <p class="section-label" style="margin-bottom:1.5rem;">Favourite Artists</p>
-        <div class="artist-list">
-          <span class="artist-tag">Mac Miller</span>
-          <span class="artist-tag">Tyler, The Creator</span>
-          <span class="artist-tag">Childish Gambino</span>
-          <span class="artist-tag">Frank Ocean</span>
-          <span class="artist-tag">OutKast</span>
-          <span class="artist-tag">Travis Scott</span>
-          <span class="artist-tag">Juice WRLD</span>
-          <span class="artist-tag">A$AP Rocky</span>
-        </div>
-      </div>
-    </div>
-  </section>
+<!-- MINDSET -->
+<section id="mindset">
+  <div class="mindset-bg"><div class="mindset-bg-text">MONEY</div></div>
+  <div class="section-bg-num">06</div>
+  <p class="section-label reveal" style="position:relative;z-index:2">Mindset</p>
+  <p class="mindset-quote reveal d1"><span>Start early. Talk to everyone.</span> <span class="gw">Save</span> while you still can. The advantage isn't luck — <span>it's awareness.</span></p>
+  <p class="mindset-sub reveal d2">Tiger believes the biggest edge a young person has is simply paying attention — to money, to people, and to the opportunities hiding in plain sight.</p>
+</section>
 
-  <!-- MINDSET -->
-  <section id="mindset">
-    <div class="mindset-bg"><div class="mindset-bg-text">$$$$$</div></div>
-    <p class="mindset-label reveal">Mindset</p>
-    <p class="mindset-quote reveal d1"><span>Start early. Talk to everyone.</span> <span class="gold-word">Save</span> while you still can. The advantage isn't luck — <span>it's awareness.</span></p>
-    <p class="mindset-sub reveal d2">Tiger believes the biggest edge a young person has is simply paying attention — to money, to people, and to the opportunities hiding in plain sight.</p>
-  </section>
+<!-- CONTACT -->
+<section id="contact">
+  <div class="money-overlay" id="contact-money"></div>
+  <div class="pulse-ring"></div><div class="pulse-ring"></div><div class="pulse-ring"></div>
+  <div class="section-bg-num">07</div>
+  <p class="section-label reveal" style="position:relative;z-index:2">Get In Touch</p>
+  <h2 class="contact-heading reveal d1">Let's<br/>Link Up.</h2>
+  <p class="contact-sub reveal d2">Whether you're a future collaborator, client, or just want to connect — always open to a real conversation.</p>
+  <div class="contact-btns reveal d3">
+    <a href="mailto:tigervroman@gmail.com" class="contact-btn magnetic"><span>✉ &nbsp;Email Me</span></a>
+    <a href="https://instagram.com/tiger.vroman" target="_blank" class="contact-btn magnetic"><span>◈ &nbsp;Instagram</span></a>
+    <a href="https://github.com/tigervroman-pixel" target="_blank" class="contact-btn magnetic"><span>⌥ &nbsp;GitHub</span></a>
+  </div>
+</section>
 
-  <!-- CONTACT -->
-  <section id="contact">
-    <div class="money-overlay" id="contact-money"></div>
-    <div class="contact-pulse"></div>
-    <div class="contact-pulse"></div>
-    <div class="contact-pulse"></div>
-    <p class="section-label reveal">Get In Touch</p>
-    <h2 class="contact-heading reveal d1">Let's<br/>Link Up.</h2>
-    <p class="contact-sub reveal d2">Whether you're a future collaborator, client, or just want to connect — Tiger's always open to a real conversation.</p>
-    <div class="contact-btns reveal d3">
-      <a href="mailto:tigervroman@gmail.com" class="contact-btn"><span>✉ &nbsp;Email Me</span></a>
-      <a href="https://instagram.com/tiger.vroman" target="_blank" class="contact-btn"><span>◈ &nbsp;Instagram</span></a>
-      <a href="https://github.com/tigervroman-pixel" target="_blank" class="contact-btn"><span>⌥ &nbsp;GitHub</span></a>
-    </div>
-  </section>
+<footer>
+  <p>© 2026 Tiger Vroman</p>
+  <p>Austin, TX — Built by Tiger</p>
+</footer>
 
-  <footer>
-    <p>© 2026 Tiger Vroman</p>
-    <p>Austin, TX — Built by Tiger</p>
-  </footer>
+<script>
+// ── LOADER ──────────────────────────────────────────────────────
+const lcount = document.getElementById('lcount');
+const lname  = document.getElementById('lname');
+const lbar   = document.getElementById('lbar');
+const loader = document.getElementById('loader');
+const lskip  = document.getElementById('lskip');
+let loaderDone = false;
 
-  <script>
-  // ── CURSOR + TRAIL ────────────────────────────────────
-  const cur = document.getElementById('cursor');
-  const ring = document.getElementById('cursor-ring');
-  const trailCanvas = document.getElementById('trail-canvas');
-  const tc = trailCanvas.getContext('2d');
-  let mx = -200, my = -200, rx = -200, ry = -200;
-  const trail = [];
-  const TRAIL_LEN = 18;
+function finishLoader() {
+  if (loaderDone) return; loaderDone = true;
+  loader.classList.add('out');
+  setTimeout(() => { loader.style.display = 'none'; startHero(); }, 1000);
+}
+lskip.addEventListener('click', finishLoader);
 
-  function resizeTrail() { trailCanvas.width = window.innerWidth; trailCanvas.height = window.innerHeight; }
-  resizeTrail(); window.addEventListener('resize', resizeTrail);
+// Phase 1: count $0 → $22,000
+let st = null;
+const DUR = 1400, TARGET = 22000;
+(function countUp(ts) {
+  if (!st) st = ts;
+  const p = Math.min((ts - st) / DUR, 1);
+  const e = 1 - Math.pow(1 - p, 2);
+  const val = Math.round(TARGET * e);
+  lcount.textContent = '$' + (val >= 1000 ? Math.round(val/1000) + 'K' : val) + ' CPO';
+  lbar.style.width = (p * 60) + '%';
+  if (p < 1) { requestAnimationFrame(countUp); return; }
+  lcount.textContent = '$22K CPO';
+  setTimeout(revealName, 150);
+})(0);
 
-  document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; trail.push({x: mx, y: my, t: Date.now()}); if (trail.length > TRAIL_LEN) trail.shift(); });
+// Phase 2: scramble "TIGER VROMAN"
+function revealName() {
+  lname.classList.add('show');
+  const text = 'TIGER VROMAN';
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ$#@!%&';
+  let iter = 0;
+  const iv = setInterval(() => {
+    lname.textContent = text.split('').map((c,i) => {
+      if (c === ' ') return ' ';
+      if (i < iter) return c;
+      return chars[Math.floor(Math.random() * chars.length)];
+    }).join('');
+    lbar.style.width = (60 + (iter / text.length) * 40) + '%';
+    iter += 0.5;
+    if (iter >= text.length) { lname.textContent = text; lbar.style.width = '100%'; clearInterval(iv); setTimeout(finishLoader, 700); }
+  }, 40);
+}
 
-  (function tickCursor() {
-    cur.style.left = mx + 'px'; cur.style.top = my + 'px';
-    rx += (mx - rx) * 0.13; ry += (my - ry) * 0.13;
-    ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
-    tc.clearRect(0, 0, trailCanvas.width, trailCanvas.height);
-    for (let i = 1; i < trail.length; i++) {
-      const prog = i / trail.length;
-      tc.beginPath();
-      tc.arc(trail[i].x, trail[i].y, prog * 4, 0, Math.PI * 2);
-      tc.fillStyle = `rgba(139,92,246,${prog * 0.35})`;
-      tc.fill();
-    }
-    requestAnimationFrame(tickCursor);
-  })();
+// ── HERO TYPEWRITER ──────────────────────────────────────────────
+function startHero() {
+  const el = document.getElementById('hero-sub');
+  const text = 'Sales. Music. Fashion. Building something real — starting now.';
+  let i = 0;
+  const iv = setInterval(() => {
+    el.textContent += text[i]; i++;
+    if (i >= text.length) { clearInterval(iv); el.style.opacity = '1'; }
+  }, 38);
+  el.style.opacity = '1';
+}
 
-  // ── HERO PARTICLE + DOLLAR CANVAS ────────────────────
-  const canvas = document.getElementById('hero-canvas');
-  const ctx = canvas.getContext('2d');
-  function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-  resize(); window.addEventListener('resize', resize);
+// ── PROGRESS BAR ─────────────────────────────────────────────────
+const prog = document.getElementById('progress');
+window.addEventListener('scroll', () => {
+  const total = document.documentElement.scrollHeight - window.innerHeight;
+  prog.style.width = (window.scrollY / total * 100) + '%';
+});
 
-  const NUM_P = 100, NUM_D = 18;
-  const pts = Array.from({length: NUM_P}, () => ({
-    x: Math.random() * innerWidth, y: Math.random() * innerHeight,
-    vx: (Math.random()-.5)*.4, vy: (Math.random()-.5)*.4,
-    r: Math.random()*1.3+.3, a: Math.random()*.4+.08
-  }));
-
-  const dollars = Array.from({length: NUM_D}, () => ({
-    x: Math.random() * innerWidth,
-    y: Math.random() * innerHeight + innerHeight,
-    vy: -(Math.random()*.4+.15),
-    vx: (Math.random()-.5)*.2,
-    size: Math.random()*22+10,
-    a: Math.random()*.1+.03,
-    rot: (Math.random()-.5)*.4,
-    sym: Math.random() > .5 ? '$' : '💵'
-  }));
-
-  let pmx = -999, pmy = -999;
-  document.addEventListener('mousemove', e => { pmx = e.clientX; pmy = e.clientY; });
-
-  (function draw() {
-    ctx.clearRect(0,0,canvas.width,canvas.height);
-
-    // connections
-    for (let i=0; i<NUM_P; i++) for (let j=i+1; j<NUM_P; j++) {
-      const dx=pts[i].x-pts[j].x, dy=pts[i].y-pts[j].y, d=Math.hypot(dx,dy);
-      if (d<100) { ctx.beginPath(); ctx.moveTo(pts[i].x,pts[i].y); ctx.lineTo(pts[j].x,pts[j].y); ctx.strokeStyle=`rgba(139,92,246,${.08*(1-d/100)})`; ctx.lineWidth=.5; ctx.stroke(); }
-    }
-
-    // particles
-    pts.forEach(p => {
-      const dx=pmx-p.x, dy=pmy-p.y, d=Math.hypot(dx,dy);
-      if (d<120) { p.x-=dx*.025; p.y-=dy*.025; }
-      p.x+=p.vx; p.y+=p.vy;
-      if (p.x<0||p.x>canvas.width) p.vx*=-1;
-      if (p.y<0||p.y>canvas.height) p.vy*=-1;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=`rgba(139,92,246,${p.a})`; ctx.fill();
-    });
-
-    // floating dollar signs
-    dollars.forEach(d => {
-      d.y += d.vy; d.x += d.vx;
-      if (d.y < -60) { d.y = canvas.height + 60; d.x = Math.random() * canvas.width; }
-      ctx.save();
-      ctx.translate(d.x, d.y);
-      ctx.rotate(d.rot);
-      ctx.font = `bold ${d.size}px 'Bebas Neue', sans-serif`;
-      ctx.fillStyle = `rgba(192,132,252,${d.a})`;
-      ctx.fillText('$', 0, 0);
-      ctx.restore();
-    });
-
-    requestAnimationFrame(draw);
-  })();
-
-  // ── FLOATING MONEY IN SECTIONS ───────────────────────
-  function spawnMoney(containerId, count) {
-    const el = document.getElementById(containerId);
-    if (!el) return;
-    for (let i=0; i<count; i++) {
-      const sym = document.createElement('div');
-      sym.className = 'money-sym';
-      sym.textContent = Math.random()>.5 ? '$' : '$';
-      const size = Math.random()*2+1.2;
-      sym.style.setProperty('--size', size+'rem');
-      sym.style.setProperty('--left', (Math.random()*90+5)+'%');
-      sym.style.setProperty('--dur', (Math.random()*8+6)+'s');
-      sym.style.setProperty('--delay', (Math.random()*8)+'s');
-      sym.style.setProperty('--op', (Math.random()*.2+.12)+'');
-      sym.style.setProperty('--rot', (Math.random()*30-15)+'deg');
-      el.appendChild(sym);
-    }
+// ── CURSOR + TRAIL ────────────────────────────────────────────────
+const cur  = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+const tc   = document.getElementById('trail-canvas');
+const ctx2 = tc.getContext('2d');
+function resizeTC() { tc.width = innerWidth; tc.height = innerHeight; }
+resizeTC(); window.addEventListener('resize', resizeTC);
+let mx=-200,my=-200,rx=-200,ry=-200;
+const trail=[];
+document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; trail.push({x:mx,y:my}); if(trail.length>20) trail.shift(); });
+document.querySelectorAll('a,.interest-card,.win-item,.artist-tag').forEach(el => {
+  el.addEventListener('mouseenter', () => ring.classList.add('big'));
+  el.addEventListener('mouseleave', () => ring.classList.remove('big'));
+});
+(function tickC() {
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+  rx+=(mx-rx)*0.12; ry+=(my-ry)*0.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  ctx2.clearRect(0,0,tc.width,tc.height);
+  for(let i=1;i<trail.length;i++) {
+    const p=i/trail.length;
+    ctx2.beginPath(); ctx2.arc(trail[i].x,trail[i].y,p*3.5,0,Math.PI*2);
+    ctx2.fillStyle=`rgba(139,92,246,${p*0.3})`; ctx2.fill();
   }
-  spawnMoney('about-money', 10);
-  spawnMoney('cutco-money', 16);
-  spawnMoney('interests-money', 8);
-  spawnMoney('contact-money', 12);
+  requestAnimationFrame(tickC);
+})();
 
-  // ── COUNT-UP STATS ───────────────────────────────────
-  function countUp(el) {
-    if (el.dataset.counted) return;
-    el.dataset.counted = '1';
-    const display = el.dataset.display;
-    if (display) { animateText(el, display); return; }
-    const target = parseFloat(el.dataset.count);
-    const suffix = el.dataset.suffix || '';
-    const prefix = el.dataset.prefix || '';
-    const dur = 1800;
-    const start = performance.now();
-    (function update(now) {
-      const p = Math.min((now-start)/dur,1);
-      const eased = 1-Math.pow(1-p,3);
-      el.textContent = prefix + Math.round(target*eased) + suffix;
-      if (p<1) requestAnimationFrame(update);
-      else el.textContent = prefix + target + suffix;
-    })(start);
+// ── HERO CANVAS ───────────────────────────────────────────────────
+const hc  = document.getElementById('hero-canvas');
+const hctx = hc.getContext('2d');
+function resizeHC() { hc.width=innerWidth; hc.height=innerHeight; }
+resizeHC(); window.addEventListener('resize',resizeHC);
+const NP=110, ND=22;
+const pts = Array.from({length:NP},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,r:Math.random()*1.3+.3,a:Math.random()*.4+.07}));
+const dlrs = Array.from({length:ND},()=>({x:Math.random()*innerWidth,y:Math.random()*innerHeight+innerHeight,vy:-(Math.random()*.35+.12),vx:(Math.random()-.5)*.18,sz:Math.random()*24+10,a:Math.random()*.09+.02,rot:(Math.random()-.5)*.4}));
+let pmx=-999,pmy=-999;
+document.addEventListener('mousemove',e=>{pmx=e.clientX;pmy=e.clientY;});
+(function drawHC() {
+  hctx.clearRect(0,0,hc.width,hc.height);
+  for(let i=0;i<NP;i++) for(let j=i+1;j<NP;j++) {
+    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.hypot(dx,dy);
+    if(d<105){hctx.beginPath();hctx.moveTo(pts[i].x,pts[i].y);hctx.lineTo(pts[j].x,pts[j].y);hctx.strokeStyle=`rgba(139,92,246,${.07*(1-d/105)})`;hctx.lineWidth=.5;hctx.stroke();}
   }
+  pts.forEach(p=>{
+    const dx=pmx-p.x,dy=pmy-p.y,d=Math.hypot(dx,dy);
+    if(d<130){p.x-=dx*.025;p.y-=dy*.025;}
+    p.x+=p.vx;p.y+=p.vy;
+    if(p.x<0||p.x>hc.width)p.vx*=-1;
+    if(p.y<0||p.y>hc.height)p.vy*=-1;
+    hctx.beginPath();hctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    hctx.fillStyle=`rgba(139,92,246,${p.a})`;hctx.fill();
+  });
+  dlrs.forEach(d=>{
+    d.y+=d.vy;d.x+=d.vx;
+    if(d.y<-60){d.y=hc.height+60;d.x=Math.random()*hc.width;}
+    hctx.save();hctx.translate(d.x,d.y);hctx.rotate(d.rot);
+    hctx.font=`bold ${d.sz}px 'Bebas Neue',sans-serif`;
+    hctx.fillStyle=`rgba(192,132,252,${d.a})`;hctx.fillText('$',0,0);
+    hctx.restore();
+  });
+  requestAnimationFrame(drawHC);
+})();
 
-  function animateText(el, final) {
-    const chars = '$0123456789K';
-    let count = 0;
-    const interval = setInterval(() => {
-      el.textContent = Array.from(final).map((c,i) => i < count ? c : chars[Math.floor(Math.random()*chars.length)]).join('');
-      count++;
-      if (count > final.length) { el.textContent = final; clearInterval(interval); }
-    }, 60);
+// ── PARALLAX HERO ─────────────────────────────────────────────────
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY;
+  const hn=document.querySelector('.hero-name');
+  if(hn)hn.style.transform=`translateY(${y*.28}px)`;
+});
+
+// ── FLOATING MONEY ────────────────────────────────────────────────
+function spawnMoney(id,n) {
+  const el=document.getElementById(id); if(!el)return;
+  for(let i=0;i<n;i++){
+    const s=document.createElement('div'); s.className='money-sym'; s.textContent='$';
+    s.style.setProperty('--size',(Math.random()*2+1.2)+'rem');
+    s.style.setProperty('--left',(Math.random()*88+6)+'%');
+    s.style.setProperty('--dur',(Math.random()*8+6)+'s');
+    s.style.setProperty('--delay',(Math.random()*9)+'s');
+    s.style.setProperty('--op',(Math.random()*.18+.1)+'');
+    s.style.setProperty('--rot',(Math.random()*30-15)+'deg');
+    el.appendChild(s);
   }
+}
+spawnMoney('about-money',10); spawnMoney('cutco-money',16); spawnMoney('interests-money',8); spawnMoney('contact-money',12); spawnMoney('travel-money',8);
 
-  // ── WIN-ITEM TILT ────────────────────────────────────
-  document.querySelectorAll('.win-item').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r = card.getBoundingClientRect();
-      const x = (e.clientX - r.left) / r.width - .5;
-      const y = (e.clientY - r.top) / r.height - .5;
-      card.style.transform = `perspective(600px) rotateX(${-y*6}deg) rotateY(${x*6}deg) translateZ(4px)`;
-    });
-    card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+// ── EQUALIZER ─────────────────────────────────────────────────────
+const eq=document.getElementById('eq');
+for(let i=0;i<42;i++){
+  const b=document.createElement('div'); b.className='eq-bar';
+  b.style.setProperty('--h',(Math.random()*50+8)+'px');
+  b.style.setProperty('--dur',(Math.random()*.5+.25)+'s');
+  b.style.setProperty('--delay',(Math.random()*.4)+'s');
+  eq.appendChild(b);
+}
+
+// ── TEXT SCRAMBLE ON HEADINGS ─────────────────────────────────────
+function scramble(el) {
+  if(el.dataset.sc) return; el.dataset.sc='1';
+  const orig=el.innerHTML;
+  const text=el.textContent;
+  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#';
+  let iter=0;
+  const iv=setInterval(()=>{
+    let out='',ci=0;
+    for(let i=0;i<text.length;i++){
+      if(text[i]==='\n'){out+='<br>';continue;}
+      if(text[i]===' '){out+=' ';continue;}
+      if(ci<iter){out+=text[i];}
+      else{out+=chars[Math.floor(Math.random()*chars.length)];}
+      ci++;
+    }
+    el.innerHTML=out;
+    iter+=0.7;
+    if(iter>=text.length){el.innerHTML=orig;clearInterval(iv);}
+  },35);
+}
+
+// ── TILT CARDS ────────────────────────────────────────────────────
+document.querySelectorAll('.tilt-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    c.style.transform=`perspective(700px) rotateX(${-y*8}deg) rotateY(${x*8}deg) translateZ(6px)`;
+    c.style.transition='transform .05s ease';
   });
-
-  // ── SCROLL REVEAL + COUNTUP TRIGGER ─────────────────
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        e.target.querySelectorAll('[data-count],[data-display]').forEach(countUp);
-      }
-    });
-  }, {threshold: .1});
-
-  document.querySelectorAll('.reveal,.reveal-left,.reveal-right').forEach(el => obs.observe(el));
-
-  // also observe stats directly
-  document.querySelectorAll('[data-count],[data-display]').forEach(el => {
-    const statObs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) countUp(e.target); });
-    }, {threshold:.5});
-    statObs.observe(el);
+  c.addEventListener('mouseleave',()=>{
+    c.style.transition='transform .5s cubic-bezier(.16,1,.3,1)';
+    c.style.transform='';
   });
+});
 
-  // ── PARALLAX HERO NAME ───────────────────────────────
-  window.addEventListener('scroll', () => {
-    const y = window.scrollY;
-    const heroName = document.querySelector('.hero-name');
-    if (heroName) heroName.style.transform = `translateY(${y * 0.3}px)`;
-    const heroTag = document.querySelector('.hero-tag');
-    if (heroTag) heroTag.style.transform = `translateY(${y * 0.15}px)`;
+// interest card tilt
+document.querySelectorAll('.interest-card').forEach(c=>{
+  c.addEventListener('mousemove',e=>{
+    const r=c.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    c.style.transform=`perspective(800px) rotateX(${-y*14}deg) rotateY(${x*14}deg) scale(1.03)`;
+    c.style.transition='transform .05s ease';
   });
-  </script>
+  c.addEventListener('mouseleave',()=>{
+    c.style.transition='transform .5s cubic-bezier(.16,1,.3,1)';
+    c.style.transform='';
+  });
+});
+
+// ── MAGNETIC BUTTONS ──────────────────────────────────────────────
+document.querySelectorAll('.magnetic').forEach(el=>{
+  el.addEventListener('mousemove',e=>{
+    const r=el.getBoundingClientRect();
+    const x=(e.clientX-r.left-r.width/2)*.35;
+    const y=(e.clientY-r.top-r.height/2)*.35;
+    el.style.transform=`translate(${x}px,${y}px)`;
+    el.style.transition='transform .1s ease';
+  });
+  el.addEventListener('mouseleave',()=>{
+    el.style.transition='transform .5s cubic-bezier(.16,1,.3,1)';
+    el.style.transform='';
+  });
+});
+
+// ── COUNT-UP STATS ────────────────────────────────────────────────
+function countStat(el) {
+  if(el.dataset.done)return; el.dataset.done='1';
+  const target=parseFloat(el.dataset.target);
+  if(!target)return;
+  const pre=el.dataset.prefix||'', suf=el.dataset.suffix||'';
+  const dur=1600, st=performance.now();
+  (function run(now){
+    const p=Math.min((now-st)/dur,1), e=1-Math.pow(1-p,3);
+    el.textContent=pre+Math.round(target*e)+suf;
+    if(p<1)requestAnimationFrame(run);
+    else el.textContent=pre+target+suf;
+  })(st);
+}
+
+// ── INTERSECTION OBSERVER ─────────────────────────────────────────
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(!e.isIntersecting)return;
+    e.target.classList.add('on');
+    e.target.querySelectorAll('[data-target]').forEach(countStat);
+    if(e.target.classList.contains('scramble-head'))scramble(e.target);
+    e.target.querySelectorAll('.scramble-head').forEach(scramble);
+  });
+},{threshold:.1});
+
+document.querySelectorAll('.reveal,.reveal-l,.reveal-r').forEach(el=>obs.observe(el));
+document.querySelectorAll('[data-target]').forEach(el=>{
+  const o=new IntersectionObserver(ee=>{ee.forEach(e=>{if(e.isIntersecting)countStat(e.target);});},{threshold:.5});
+  o.observe(el);
+});
+</script>
 </body>
 </html>
