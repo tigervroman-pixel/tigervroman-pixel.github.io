@@ -570,23 +570,34 @@ for(let i=0;i<42;i++){
 // ── TEXT SCRAMBLE ON HEADINGS ─────────────────────────────────────
 function scramble(el) {
   if(el.dataset.sc) return; el.dataset.sc='1';
-  const orig=el.innerHTML;
-  const text=el.textContent;
   const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#';
-  let iter=0;
-  const iv=setInterval(()=>{
-    let out='',ci=0;
-    for(let i=0;i<text.length;i++){
-      if(text[i]==='\n'){out+='<br>';continue;}
-      if(text[i]===' '){out+=' ';continue;}
-      if(ci<iter){out+=text[i];}
-      else{out+=chars[Math.floor(Math.random()*chars.length)];}
-      ci++;
+  // Split by <br> to preserve line structure
+  const parts = el.innerHTML.split(/<br\s*\/?>/i);
+  const texts = parts.map(p => {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = p; return tmp.textContent;
+  });
+  let iter = 0;
+  const totalLen = texts.reduce((a,t) => a + t.length, 0);
+  const iv = setInterval(() => {
+    let cumulative = 0;
+    const lines = texts.map(text => {
+      const lineOut = text.split('').map((c, i) => {
+        const globalI = cumulative + i;
+        if (c === ' ') return ' ';
+        if (globalI < iter) return c;
+        return chars[Math.floor(Math.random() * chars.length)];
+      }).join('');
+      cumulative += text.length;
+      return lineOut;
+    });
+    el.innerHTML = lines.join('<br>');
+    iter += 0.7;
+    if (iter >= totalLen) {
+      el.innerHTML = parts.join('<br>');
+      clearInterval(iv);
     }
-    el.innerHTML=out;
-    iter+=0.7;
-    if(iter>=text.length){el.innerHTML=orig;clearInterval(iv);}
-  },35);
+  }, 35);
 }
 
 // ── TILT CARDS ────────────────────────────────────────────────────
